@@ -5,15 +5,31 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from urllib import parse
 import uvicorn
+import random
+
+
 
 app = FastAPI(
     title="sc",
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
-from fastapi import FastAPI
-
-app = FastAPI()
 print("ssibala")
+# 0부터 1 사이의 임의의 부동소수점 숫자를 반환합니다.
+random.random()
+templates = Jinja2Templates(directory="templates")
+@app.get("/loading", response_class=HTMLResponse) 
+async def loading(request:Request):
+    replaced = str(request.url).replace('loading', 'api')
+    rand = random.randint(1, 3)
+    img = "/static/img/"
+    if rand == 1:
+        img += "mia_loading1.jpg"
+    elif rand == 2:
+        img += "mia_loading2.jpg"
+    else:
+        img += "mia_loading3.jpg"
+    context = {"request": request, "result_url": replaced, "loading_img":img}
+    return templates.TemplateResponse("loading.html",context)
 
 @app.get("/api", response_class=HTMLResponse)
 async def api(request: Request):
@@ -40,17 +56,13 @@ async def api(request: Request):
             add = 3
         print(k, v, add)
         result += add
-    val = ""
+
+    context = {"request": request, "total": result}
+    print(context)
     if result >= 19:
-        val = "ADHD 입니다."
+        return templates.TemplateResponse("abnormal.html", context)
     else:
-        val = "ADHD가 아닙니다"
-    ret = '총점 {}임으로 {}'.format(result, val)
-    
-    return ret
-
-templates = Jinja2Templates(directory="templates")
-
+        return templates.TemplateResponse("normal.html",context)
 
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
